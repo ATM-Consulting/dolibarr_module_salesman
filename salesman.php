@@ -85,9 +85,23 @@ function _script() {
 	        myLocationDiv.appendChild(myLocationBtn);
 	    
 	        google.maps.event.addDomListener(myLocationBtn, 'click', function() {
+	        	
 	            navigator.geolocation.getCurrentPosition(function(success) {
-	                map.setCenter(new google.maps.LatLng(success.coords.latitude, success.coords.longitude));
+	            	
+	            	var latLong = new google.maps.LatLng(success.coords.latitude, success.coords.longitude);
+	                map.setCenter(latLong);
 	                map.setZoom(12);
+	                
+	                clearDirections();
+	        
+			        // Add a node to map
+			        marker = new google.maps.Marker({position: latLong, map: map});
+			        markers.push(marker);
+			        
+			        // Store node's lat and lng
+			        nodes.push(latLong);
+	                
+	                
 	            });
 	        });
 	    }
@@ -555,6 +569,8 @@ function _script() {
 	        };
 	    },
 	};
+	
+	
 	</script><?php
 
 
@@ -679,6 +695,7 @@ function _card() {
 	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompanyOnMap') ?></button>
 	  	&nbsp;
 	  	<button id="find-route" class="butAction"><?php echo $langs->trans('FindRoute') ?></button> 
+	  	<!-- <a id="download-map" class="butAction" onclick="downloadCanvas(this);"><?php echo $langs->trans('Download') ?></a> --> 
 	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
 	  </div>
 	  <?php
