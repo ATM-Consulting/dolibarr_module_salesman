@@ -673,9 +673,10 @@ function _card() {
 	  </div>
 	  <div class="tabsAction" id="ga-buttons">
 	  	<?php
+			$form=new Form($db);
 	  		echo $form->select_company(-1,'fk_soc');
 	  	?>
-	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompany') ?></button>
+	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompanyOnMap') ?></button>
 	  	&nbsp;
 	  	<button id="find-route" class="butAction"><?php echo $langs->trans('FindRoute') ?></button> 
 	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
