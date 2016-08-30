@@ -82,11 +82,13 @@ function _script() {
 	        var myLocationBtn = document.createElement('button');
 	        myLocationBtn.innerHTML = "<?php echo $langs->transnoentities('MyLocation'); ?>";
 	        myLocationBtn.className = 'butAction';
-	        myLocationDiv.appendChild(myLocationBtn);
+	        document.getElementById('point-depart').appendChild(myLocationBtn);
 	    
 	        google.maps.event.addDomListener(myLocationBtn, 'click', function() {
 	        	
 	            navigator.geolocation.getCurrentPosition(function(success) {
+	            	
+	            	$("#starting-point").val(success.coords.latitude+', '+success.coords.longitude);
 	            	
 	            	var latLong = new google.maps.LatLng(success.coords.latitude, success.coords.longitude);
 	                map.setCenter(latLong);
@@ -173,9 +175,51 @@ function _script() {
 	// Initial Google Maps
 	google.maps.event.addDomListener(window, 'load', initializeMap);
 	
+	function setStartingPoint() {
+		
+		clearMap();
+			clearDirections();
+			
+			var address = $("#starting-point").val();
+			
+			$.ajax({
+				url:"script/interface.php"
+				,data:{
+					"get":"geolocalize"
+					,"address":address
+				}
+				,dataType:"json"
+			}).done(function(data) {
+				  myPosition = data.results[0].geometry.location;
+				
+				  if(myPosition) {
+					  marker = new google.maps.Marker({position: myPosition, map: map});
+		       		  markers.push(marker);
+					  nodes.push(myPosition);
+		        	
+		              $('#destinations-count').html(nodes.length);
+						map.setCenter(myPosition);
+					
+				  }
+				  else{
+				  	alert('Erreur');
+				  	
+				  }
+			});
+		
+	}
+	
 	// Create listeners
 	$(document).ready(function() {
 	    $('#clear-map').click(clearMap);
+	
+		setStartingPoint();
+		$("#start-from_this-point").click(function() {
+			
+			setStartingPoint();
+			
+		});
+	
 	
 		$("#add-company").click(function() {
 				
@@ -197,6 +241,8 @@ function _script() {
 					  marker = new google.maps.Marker({position: myPosition, map: map});
 		       		  markers.push(marker);
 					  nodes.push(myPosition);
+		        	  
+		        	  map.setCenter(myPosition);
 		        
 		        	  $('#destinations-count').html(nodes.length);
 					
@@ -511,7 +557,7 @@ function _script() {
 	        };
 	
 	        // Calculates individuals fitness value
-	        this.calcFitness = function() {
+	        this.calcFitness = function() { 
 	            if (this.fitness != null) {
 	                return this.fitness;
 	            }
@@ -577,12 +623,31 @@ function _script() {
 }
 
 function _card() {
-	global $conf,$user,$langs, $form, $db;
+	global $conf,$user,$langs, $form, $db, $mysoc;
 	
+	$address = $mysoc->address.', '.$mysoc->zip.' '.$mysoc->town.', '.$mysoc->country;
 	
-  	?><div id="map-canvas" style="width:100%; height:500px;"></div>
-	  <div class="hr vpad"></div>
-	  <div style="display:none;">
+  	?>
+  	<div id="point-depart">
+  		<?php echo $langs->trans('StartingPoint') ?> 
+  		<input type="text" value="<?php echo $address; ?>" name="starting-point" id="starting-point" size="80" />
+  		<button id="start-from_this-point" class="butAction"><?php echo $langs->trans('StartFromThisAddress') ?></button>  
+  	</div>
+  	
+  	<div id="map-canvas" style="width:100%; height:500px;"></div>
+	
+	  <div class="tabsAction" id="ga-buttons">
+	  	<?php
+			$form=new Form($db);
+	  		echo $form->select_thirdparty_list(-1,'fk_soc');
+	  	?>
+	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompanyOnMap') ?></button>
+	  	&nbsp;
+	  	<button id="find-route" class="butAction"><?php echo $langs->trans('FindRoute') ?></button> 
+	  	<!-- <a id="download-map" class="butAction" onclick="downloadCanvas(this);"><?php echo $langs->trans('Download') ?></a> --> 
+	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
+	  </div>
+	   <div style="display:none;">
 	    <table>
 	        <tr>
 	            <td colspan="2"><b>Configuration</b></td>
@@ -687,17 +752,7 @@ function _card() {
 	       
 	    </table>
 	  </div>
-	  <div class="tabsAction" id="ga-buttons">
-	  	<?php
-			$form=new Form($db);
-	  		echo $form->select_company(-1,'fk_soc');
-	  	?>
-	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompanyOnMap') ?></button>
-	  	&nbsp;
-	  	<button id="find-route" class="butAction"><?php echo $langs->trans('FindRoute') ?></button> 
-	  	<!-- <a id="download-map" class="butAction" onclick="downloadCanvas(this);"><?php echo $langs->trans('Download') ?></a> --> 
-	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
-	  </div>
+	 
 	  <?php
 	  
 	  

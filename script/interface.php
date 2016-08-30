@@ -29,4 +29,15 @@
 			
 			break;
 		
+		case 'geolocalize' :
+			$address = trim(GETPOST('address'));
+			if(!empty($address)) {
+				$url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.urlencode($address).'&key='.urlencode($conf->global->SALESMAN_GOOGLE_API_KEY);
+				$json = file_get_contents($url);
+				
+				echo $json;
+				
+			}
+			break;
+		
 	}

@@ -9,7 +9,9 @@ SalesmanAbout = A propos du module Salesman
 AddCompanyOnMap=Ajouter sur la carte
 FindRoute=Trouver la route
 ClearDestination=Réinitialiser
-MyLocation=Partir de ma position
+MyLocation=Me géolocaliser si possible
 SalesmanRoadFinder=Générateur de tournée
 
 
+StartingPoint = Mon point de départ
+StartFromThisAddress=Partir de là
