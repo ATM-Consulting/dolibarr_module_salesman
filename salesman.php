@@ -11,7 +11,8 @@
 		
 	}
 	else {
-
+		
+		
 		_script();
 		_card();
 		
@@ -53,8 +54,8 @@ function _script() {
 	    // Create map click event
 	    google.maps.event.addListener(map, 'click', function(event) {
 	        
-	        if (nodes.length >= 30) {
-	            alert('Max destinations added');
+	        if (nodes.length > 8) {
+	            alert('<?php echo $langs->transnoentities('MaxPath') ?>');
 	            return;
 	        }
 	
@@ -344,7 +345,7 @@ function _script() {
 	                    		for(it in response.routes[0].legs) {
 	                    			
 	                    			var oujevais = response.routes[0].legs[it];
-	                    			console.log(oujevais);
+	                    			//console.log(oujevais);
 	                    			$('#itineraire').append('<strong>'+(parseInt(it)+1)+' - '+oujevais.distance.text+" </strong><br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
 	                    			+oujevais.start_address+' <strong> <?php echo $langs->transnoentities('To') ?> </strong> '
 	                    			+oujevais.end_address+'</br><hr />');		
@@ -429,6 +430,7 @@ function _script() {
 	            for (var i = 0; i < ga.populationSize; i++) {
 	                var newIndividual = new ga.individual(chromosomeLength);
 	                newIndividual.initialize();
+	               // console.log(newIndividual);
 	                this.individuals.push(newIndividual);
 	            }
 	        };
@@ -452,19 +454,22 @@ function _script() {
 	            
 	            // Find fittest individual
 	            var fittestIndex = this.getFittestIndex();
-	
 	            for (index in this.individuals) {
 	                // Add unchanged into next generation if this is the elite individual and elitism is enabled
+	                
 	                if (ga.elitism == true && index == fittestIndex) {
 	                    // Replicate individual
 	                    var eliteIndividual = new ga.individual(this.individuals[index].chromosomeLength);
 	                    eliteIndividual.setChromosome(this.individuals[index].chromosome.slice());
+	                    //console.log('fitest', this.individuals[index].chromosome.slice());
 	                    newPopulation.addIndividual(eliteIndividual);
 	                } else {
 	                    // Select mate
 	                    var parent = this.tournamentSelection();
 	                    // Apply crossover
+	                  //  console.log('nofitest after', this.individuals[index].chromosome.slice());
 	                    this.individuals[index].crossover(parent, newPopulation);
+	                  //  console.log('nofitest after', this.individuals[index].chromosome.slice());
 	                }
 	            }
 	            
@@ -529,11 +534,13 @@ function _script() {
 	            for (var i = 0; i < this.chromosomeLength; i++) {
 	                this.chromosome.push(i);
 	            }
-	            for (var i = 0; i < this.chromosomeLength; i++) {
-	                var randomIndex = Math.floor(Math.random() * this.chromosomeLength);
-	                var tempNode = this.chromosome[randomIndex];
-	                this.chromosome[randomIndex] = this.chromosome[i];
-	                this.chromosome[i] = tempNode;
+	            for (var i = 1; i < this.chromosomeLength; i++) {
+	                var randomIndex = Math.floor(Math.random() * (this.chromosomeLength )) ;
+	                if(randomIndex>0) {
+		                var tempNode = this.chromosome[randomIndex];
+		                this.chromosome[randomIndex] = this.chromosome[i];
+		                this.chromosome[i] = tempNode;
+	                }
 	            }
 	        };
 	        
@@ -548,11 +555,14 @@ function _script() {
 	            
 	            // Loop over chromosome making random changes
 	            for (index in this.chromosome) {
-	                if (ga.mutationRate > Math.random()) {
-	                    var randomIndex = Math.floor(Math.random() * this.chromosomeLength);
-	                    var tempNode = this.chromosome[randomIndex];
-	                    this.chromosome[randomIndex] = this.chromosome[index];
-	                    this.chromosome[index] = tempNode;
+	                if (ga.mutationRate > Math.random() && index>0) {
+	                    var randomIndex = Math.floor(Math.random() * (this.chromosomeLength));
+	                    if(randomIndex>0) {
+		                    var tempNode = this.chromosome[randomIndex];
+		                    this.chromosome[randomIndex] = this.chromosome[index];
+		                    this.chromosome[index] = tempNode;
+	                    	
+	                    }
 	                }
 	            }
 	        };
@@ -593,12 +603,16 @@ function _script() {
 	            var offspringChromosome = [];
 	
 	            // Add a random amount of this individual's genetic information to offspring
-	            var startPos = Math.floor(this.chromosome.length * Math.random());
+	            var startPos = Math.floor(this.chromosome.length * Math.random() );
 	            var endPos = Math.floor(this.chromosome.length * Math.random());
 	
-	            var i = startPos;
+				var i = startPos;
 	            while (i != endPos) {
-	                offspringChromosome[i] = individual.chromosome[i];
+	                
+	               if(i!=0) {
+		                offspringChromosome[i] = individual.chromosome[i];
+	               }
+	                
 	                i++
 	
 	                if (i >= this.chromosome.length) {
@@ -607,15 +621,18 @@ function _script() {
 	            }
 	
 	            // Add any remaining genetic information from individual's mate
+	            //console.log('indi', individual.chromosome);
 	            for (parentIndex in individual.chromosome) {
+	            	
 	                var node = individual.chromosome[parentIndex];
 	
 	                var nodeFound = false;
 	                for (offspringIndex in offspringChromosome) {
-	                    if (offspringChromosome[offspringIndex] == node) {
-	                        nodeFound = true;
-	                        break;
-	                    }
+	                	
+	   	            		if (offspringChromosome[offspringIndex] == node) {
+		                        nodeFound = true;
+		                        break;
+		                    }
 	                }
 	
 	                if (nodeFound == false) {
@@ -630,7 +647,9 @@ function _script() {
 	
 	            // Add chromosome to offspring and add offspring to population
 	            var offspring = new ga.individual(this.chromosomeLength);
+	            //console.log('offA',offspring.chromosome);
 	            offspring.setChromosome(offspringChromosome);
+	            //console.log('offB',offspring.chromosome);
 	            offspringPopulation.addIndividual(offspring);
 	        };
 	    },
@@ -648,7 +667,16 @@ function _card() {
 	$address = $mysoc->address.', '.$mysoc->zip.' '.$mysoc->town.', '.$mysoc->country;
 	
   	?>
-  	<div id="point-depart">
+  	<style type="text/css">
+  		@media print
+		{    
+		    .no-print, .no-print *, #id-top, #id-left, .side-nav
+		    {
+		        display: none !important;
+		    }
+		}
+  	</style>
+  	<div id="point-depart" class="no-print">
   		<?php echo $langs->trans('StartingPoint') ?> 
   		<input type="text" value="<?php echo $address; ?>" name="starting-point" id="starting-point" size="80" />
   		<button id="start-from_this-point" class="butAction"><?php echo $langs->trans('StartFromThisAddress') ?></button>  
@@ -656,7 +684,7 @@ function _card() {
   	
   	<div id="map-canvas" style="width:100%; height:500px;"></div>
 	
-	  <div class="tabsAction" id="ga-buttons">
+	  <div class="tabsAction no-print" id="ga-buttons">
 	  	<?php
 			$form=new Form($db);
 	  		echo $form->select_thirdparty_list(-1,'fk_soc');
@@ -670,7 +698,7 @@ function _card() {
 	  
 	  <div id="itineraire"></div>
 	  
-	   <div style="display:none;">
+	   <div style="display:none;" class="no-print">
 	    <table>
 	        <tr>
 	            <td colspan="2"><b>Configuration</b></td>

@@ -15,3 +15,5 @@ SalesmanRoadFinder=Générateur de tournée
 
 StartingPoint = Mon point de départ
 StartFromThisAddress=Partir de là
+
+MaxPath=Vous ne pouvez rechercher que pour un maximun de 8 destinations
