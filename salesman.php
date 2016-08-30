@@ -317,6 +317,7 @@ function _script() {
 	                directionsDisplay = new google.maps.DirectionsRenderer();
 	                directionsDisplay.setMap(map);
 	                var waypts = [];
+	                
 	                for (var i = 1; i < route.length; i++) {
 	                    waypts.push({
 	                        location: nodes[route[i]],
@@ -334,7 +335,26 @@ function _script() {
 	                    avoidTolls: false
 	                };
 	                directionsService.route(request, function(response, status) {
+	                	
 	                    if (status == google.maps.DirectionsStatus.OK) {
+	                    	
+	                    	if(response.routes[0].legs) {
+	                    		$('#itineraire').empty();
+	                    		
+	                    		for(it in response.routes[0].legs) {
+	                    			
+	                    			var oujevais = response.routes[0].legs[it];
+	                    			console.log(oujevais);
+	                    			$('#itineraire').append('<strong>'+(parseInt(it)+1)+' - '+oujevais.distance.text+" </strong><br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+	                    			+oujevais.start_address+' <strong> <?php echo $langs->transnoentities('To') ?> </strong> '
+	                    			+oujevais.end_address+'</br><hr />');		
+	                    			
+	                    		}
+	                    		
+	                    		
+	                    		
+	                    	}	                    	
+	                    	
 	                        directionsDisplay.setDirections(response);
 	                    }
 	                    clearMapMarkers();
@@ -647,6 +667,9 @@ function _card() {
 	  	<!-- <a id="download-map" class="butAction" onclick="downloadCanvas(this);"><?php echo $langs->trans('Download') ?></a> --> 
 	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
 	  </div>
+	  
+	  <div id="itineraire"></div>
+	  
 	   <div style="display:none;">
 	    <table>
 	        <tr>
