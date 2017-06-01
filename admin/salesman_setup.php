@@ -108,7 +108,7 @@ print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 // Example with a yes / no select
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("SALESMAN_GOOGLE_API_KEY").'<br /><a href="https://developers.google.com/maps/documentation/javascript/get-api-key?hl=fr">https://developers.google.com/maps/documentation/javascript/get-api-key?hl=fr</a></td>';
+print '<td>'.$form->textwithpicto($langs->trans("SALESMAN_GOOGLE_API_KEY"), $langs->trans("SALESMAN_GOOGLE_API_KEY_HELP")).'<br /><a href="https://developers.google.com/maps/documentation/javascript/get-api-key?hl=fr">https://developers.google.com/maps/documentation/javascript/get-api-key?hl=fr</a></td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="300" nowrap="nowrap">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';

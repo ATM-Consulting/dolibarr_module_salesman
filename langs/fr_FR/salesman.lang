@@ -17,3 +17,6 @@ StartingPoint = Mon point de départ
 StartFromThisAddress=Partir de là
 
 MaxPath=Vous ne pouvez rechercher que pour un maximun de 8 destinations
+
+SALESMAN_GOOGLE_API_KEY=Clé API de Google
+SALESMAN_GOOGLE_API_KEY_HELP=Via la console google, pensez à activer les services suivants dans la séction "API Google Maps"<br /><ul><li>Google Maps Distance Matrix API</li><li>Google Maps Directions API</li><li>Google Maps Geocoding API</li></ul>
