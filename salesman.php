@@ -35,6 +35,8 @@ function _script() {
 	var directionsService;
 	var polylinePath;
 
+	// @see MAX_DIMENSIONS_EXCEEDED => https://developers.google.com/maps/documentation/javascript/distancematrix
+	// donc en théorie, la valeur max c'est 25
 	var maxNode = <?php echo (is_numeric($conf->global->SALESMAN_MAXNODE)) ? $conf->global->SALESMAN_MAXNODE : 8; ?>;
 
 	var nodes = [];
@@ -121,24 +123,56 @@ function _script() {
 	        travelMode: google.maps.TravelMode[$('#travel-type').val()],
 	        avoidHighways: parseInt($('#avoid-highways').val()) > 0 ? true : false,
 	        avoidTolls: false,
-	    }, function(distanceData) {
-	        // Create duration data array
-	        var nodeDistanceData;
-	        for (originNodeIndex in distanceData.rows) {
-	            nodeDistanceData = distanceData.rows[originNodeIndex].elements;
-	            durations[originNodeIndex] = [];
-	            for (destinationNodeIndex in nodeDistanceData) {
-	                if (durations[originNodeIndex][destinationNodeIndex] = nodeDistanceData[destinationNodeIndex].duration == undefined) {
-	                    alert('Error: couldn\'t get a trip duration from API');
-	                    return;
-	                }
-	                durations[originNodeIndex][destinationNodeIndex] = nodeDistanceData[destinationNodeIndex].duration.value;
-	            }
-	        }
-	
-	        if (callback != undefined) {
-	            callback();
-	        }
+	    }, function(distanceData, status) {
+
+	    	// @see https://developers.google.com/maps/documentation/javascript/distancematrix
+	    	switch (status) {
+				case "INVALID_REQUEST":
+					alert("API Google return code INVALID_REQUEST: The provided request was invalid. This is often due to missing required fields.");
+					break
+				case "MAX_ELEMENTS_EXCEEDED":
+					alert("API Google return code MAX_ELEMENTS_EXCEEDED: The product of origins and destinations exceeds the per-query limit.");
+					break;
+				case "MAX_DIMENSIONS_EXCEEDED":
+					alert("API Google return code MAX_DIMENSIONS_EXCEEDED: Your request contained more than 25 origins, or more than 25 destinations.");
+					break;
+				case "OVER_QUERY_LIMIT":
+					alert("API Google return code OVER_QUERY_LIMIT: Your application has requested too many elements within the allowed time period. The request should succeed if you try again after a reasonable amount of time.");
+					break;
+				case "REQUEST_DENIED":
+					alert("API Google return code REQUEST_DENIED: The service denied use of the Distance Matrix service by your web page.");
+					break;
+				case "UNKNOWN_ERROR":
+					alert("API Google return code UNKNOWN_ERROR: A Distance Matrix request could not be processed due to a server error. The request may succeed if you try again.");
+					break;
+				case "NOT_FOUND":
+					alert("API Google return code NOT_FOUND: The origin and/or destination of this pairing could not be geocoded.");
+					break;
+				case "ZERO_RESULTS":
+					alert("API Google return code ZERO_RESULTS: No route could be found between the origin and destination.");
+					break;
+				case "OK":
+					// Create duration data array
+					var nodeDistanceData;
+					for (originNodeIndex in distanceData.rows) {
+						nodeDistanceData = distanceData.rows[originNodeIndex].elements;
+						durations[originNodeIndex] = [];
+						for (destinationNodeIndex in nodeDistanceData) {
+							if (durations[originNodeIndex][destinationNodeIndex] = nodeDistanceData[destinationNodeIndex].duration == undefined) {
+								alert('Error: couldn\'t get a trip duration from API');
+								return;
+							}
+							durations[originNodeIndex][destinationNodeIndex] = nodeDistanceData[destinationNodeIndex].duration.value;
+						}
+					}
+
+					if (callback != undefined) {
+						callback();
+					}
+					break;
+			}
+
+
 	    });
 	}
 	
