@@ -34,7 +34,9 @@ function _script() {
 	var directionsDisplay = null;
 	var directionsService;
 	var polylinePath;
-	
+
+	var maxNode = <?php echo (is_numeric($conf->global->SALESMAN_MAXNODE)) ? $conf->global->SALESMAN_MAXNODE : 8; ?>;
+
 	var nodes = [];
 	var prevNodes = [];
 	var markers = [];
@@ -54,7 +56,7 @@ function _script() {
 	    // Create map click event
 	    google.maps.event.addListener(map, 'click', function(event) {
 	        
-	        if (nodes.length > 8) {
+	        if (nodes.length > maxNode) {
 	            alert('<?php echo $langs->transnoentities('MaxPath') ?>');
 	            return;
 	        }
