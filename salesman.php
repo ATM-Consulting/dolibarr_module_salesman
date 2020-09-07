@@ -1,27 +1,27 @@
 <?php
 
 	require 'config.php';
-	
+
 	llxHeader();
 	dol_fiche_head();
-	
+
 	if(empty($conf->global->SALESMAN_GOOGLE_API_KEY)) {
-		
+
 		echo '<div class="error">'.$langs->trans('GoogleAPIKeyNotDefined').'</div>';
-		
+
 	}
 	else {
-		
-		
+
+
 		_script();
 		_card();
-		
+
 	}
-	
+
 	dol_fiche_end();
-	
+
 	llxFooter();
-	
+
 
 function _script() {
 
@@ -43,7 +43,7 @@ function _script() {
 	var prevNodes = [];
 	var markers = [];
 	var durations = [];
-	
+
 	// Initialize google maps
 	function initializeMap() {
 	    // Map options
@@ -54,66 +54,66 @@ function _script() {
 	        mapTypeControl: true,
 	    };
 	    map = new google.maps.Map(document.getElementById('map-canvas'), opts);
-	
+
 	    // Create map click event
 	    google.maps.event.addListener(map, 'click', function(event) {
-	        
+
 	        if (nodes.length > maxNode) {
 	            alert('<?php echo $langs->transnoentities('MaxPath') ?>');
 	            return;
 	        }
-	
+
 	        // If there are directions being shown, clear them
 	        clearDirections();
-	        
+
 	        // Add a node to map
 	        marker = new google.maps.Marker({position: event.latLng, map: map});
 	        markers.push(marker);
-	        
+
 	        // Store node's lat and lng
 	        nodes.push(event.latLng);
-	        
+
 	        // Update destination count
 	        $('#destinations-count').html(nodes.length);
 	    });
-	
+
 	    // Add "my location" button
 	    var myLocationDiv = document.createElement('div');
 	    new getMyLocation(myLocationDiv, map);
-	
+
 	    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(myLocationDiv);
-	    
+
 	    function getMyLocation(myLocationDiv, map) {
 	        var myLocationBtn = document.createElement('button');
 	        myLocationBtn.innerHTML = "<?php echo $langs->transnoentities('MyLocation'); ?>";
 	        myLocationBtn.className = 'butAction';
 	        document.getElementById('point-depart').appendChild(myLocationBtn);
-	    
+
 	        google.maps.event.addDomListener(myLocationBtn, 'click', function() {
-	        	
+
 	            navigator.geolocation.getCurrentPosition(function(success) {
-	            	
+
 	            	$("#starting-point").val(success.coords.latitude+', '+success.coords.longitude);
-	            	
+
 	            	var latLong = new google.maps.LatLng(success.coords.latitude, success.coords.longitude);
 	                map.setCenter(latLong);
 	                map.setZoom(12);
-	                
+
 	                clearDirections();
-	        
+
 			        // Add a node to map
 			        marker = new google.maps.Marker({position: latLong, map: map});
 			        markers.push(marker);
-			        
+
 			        // Store node's lat and lng
 			        nodes.push(latLong);
-	                
-	                
+
+
 	            });
 	        });
 	    }
 	}
-	
+
 	// Get all durations depending on travel type
 	function getDurations(callback) {
 	    var service = new google.maps.DistanceMatrixService();
@@ -175,22 +175,22 @@ function _script() {
 
 	    });
 	}
-	
+
 	// Removes markers and temporary paths
 	function clearMapMarkers() {
 	    for (index in markers) {
 	        markers[index].setMap(null);
 	    }
-	
+
 	    prevNodes = nodes;
 	    nodes = [];
-	
+
 	    if (polylinePath != undefined) {
 	        polylinePath.setMap(null);
 	    }
-	    
+
 	    markers = [];
-	    
+
 	    $('#ga-buttons').show();
 	}
 	// Removes map directions
@@ -205,20 +205,20 @@ function _script() {
 	function clearMap() {
 	    clearMapMarkers();
 	    clearDirections();
-	    
+
 	    $('#destinations-count').html('0');
 	}
-	
+
 	// Initial Google Maps
 	google.maps.event.addDomListener(window, 'load', initializeMap);
-	
+
 	function setStartingPoint() {
-		
+
 		clearMap();
 			clearDirections();
-			
+
 			var address = $("#starting-point").val();
-			
+
 			$.ajax({
 				url:"script/interface.php"
 				,data:{
@@ -228,41 +228,41 @@ function _script() {
 				,dataType:"json"
 			}).done(function(data) {
 				  myPosition = data.results[0].geometry.location;
-				
+
 				  if(myPosition) {
 					  marker = new google.maps.Marker({position: myPosition, map: map});
 		       		  markers.push(marker);
 					  nodes.push(myPosition);
-		        	
+
 		              $('#destinations-count').html(nodes.length);
 						map.setCenter(myPosition);
-					
+
 				  }
 				  else{
 				  	alert('Erreur');
-				  	
+
 				  }
 			});
-		
+
 	}
-	
+
 	// Create listeners
 	$(document).ready(function() {
 	    $('#clear-map').click(clearMap);
-	
+
 		setStartingPoint();
 		$("#start-from_this-point").click(function() {
-			
+
 			setStartingPoint();
-			
+
 		});
-	
-	
+
+
 		$("#add-company").click(function() {
-				
+
 			var fk_soc = $('#fk_soc').val();
 			clearDirections();
-	        
+
 	       $.ajax({
 				url:"script/interface.php"
 				,data:{
@@ -273,29 +273,29 @@ function _script() {
 			}).done(function(data) {
 					console.log(data);
 				  myPosition = data.results[0].geometry.location;
-				
+
 				  if(myPosition) {
 					  marker = new google.maps.Marker({position: myPosition, map: map});
 		       		  markers.push(marker);
 					  nodes.push(myPosition);
-		        	  
+
 		        	  map.setCenter(myPosition);
-		        
+
 		        	  $('#destinations-count').html(nodes.length);
-					
+
 				  }
 				  else{
 				  	alert('Erreur');
-				  	
+
 				  }
-				
-				  	
+
+
 			});
-				
+
 		});
-	
+
 	    // Start GA
-	    $('#find-route').click(function() {    
+	    $('#find-route').click(function() {
 	        if (nodes.length < 2) {
 	            if (prevNodes.length >= 2) {
 	                nodes = prevNodes;
@@ -304,28 +304,28 @@ function _script() {
 	                return;
 	            }
 	        }
-	
+
 	        if (directionsDisplay != null) {
 	            directionsDisplay.setMap(null);
 	            directionsDisplay = null;
 	        }
-	        
+
 	        $('#ga-buttons').hide();
-	
+
 	        // Get route durations
 	        getDurations(function(){
 	            $('.ga-info').show();
-	
+
 	            // Get config and create initial GA population
 	            ga.getConfig();
 	            var pop = new ga.population();
 	            pop.initialize(nodes.length);
 	            var route = pop.getFittest().chromosome;
-	
+
 	            ga.evolvePopulation(pop, function(update) {
 	                $('#generations-passed').html(update.generation);
 	                $('#best-time').html((update.population.getFittest().getDistance() / 60).toFixed(2) + ' Mins');
-	            
+
 	                // Get route coordinates
 	                var route = update.population.getFittest().chromosome;
 	                var routeCoordinates = [];
@@ -333,7 +333,7 @@ function _script() {
 	                    routeCoordinates[index] = nodes[route[index]];
 	                }
 	                routeCoordinates[route.length] = nodes[route[0]];
-	
+
 	                // Display temp. route
 	                if (polylinePath != undefined) {
 	                    polylinePath.setMap(null);
@@ -348,20 +348,20 @@ function _script() {
 	            }, function(result) {
 	                // Get route
 	                route = result.population.getFittest().chromosome;
-	
+
 	                // Add route to map
 	                directionsService = new google.maps.DirectionsService();
 	                directionsDisplay = new google.maps.DirectionsRenderer();
 	                directionsDisplay.setMap(map);
 	                var waypts = [];
-	                
+
 	                for (var i = 1; i < route.length; i++) {
 	                    waypts.push({
 	                        location: nodes[route[i]],
 	                        stopover: true
 	                    });
 	                }
-	                
+
 	                // Add final route to map
 	                var request = {
 	                    origin: nodes[route[0]],
@@ -372,26 +372,26 @@ function _script() {
 	                    avoidTolls: false
 	                };
 	                directionsService.route(request, function(response, status) {
-	                	
+
 	                    if (status == google.maps.DirectionsStatus.OK) {
-	                    	
+
 	                    	if(response.routes[0].legs) {
 	                    		$('#itineraire').empty();
-	                    		
+
 	                    		for(it in response.routes[0].legs) {
-	                    			
+
 	                    			var oujevais = response.routes[0].legs[it];
 	                    			//console.log(oujevais);
 	                    			$('#itineraire').append('<strong>'+(parseInt(it)+1)+' - '+oujevais.distance.text+" </strong><br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
 	                    			+oujevais.start_address+' <strong> <?php echo $langs->transnoentities('To') ?> </strong> '
-	                    			+oujevais.end_address+'</br><hr />');		
-	                    			
+	                    			+oujevais.end_address+'</br><hr />');
+
 	                    		}
-	                    		
-	                    		
-	                    		
-	                    	}	                    	
-	                    	
+
+
+
+	                    	}
+
 	                        directionsDisplay.setDirections(response);
 	                    }
 	                    clearMapMarkers();
@@ -400,7 +400,7 @@ function _script() {
 	        });
 	    });
 	});
-	
+
 	// GA code
 	var ga = {
 	    // Default config
@@ -410,9 +410,9 @@ function _script() {
 	    "tournamentSize": 5,
 	    "elitism": true,
 	    "maxGenerations": 50,
-	    
+
 	    "tickerSpeed": 60,
-	
+
 	    // Loads config from HTML inputs
 	    "getConfig": function() {
 	        ga.crossoverRate = parseFloat($('#crossover-rate').val());
@@ -421,9 +421,9 @@ function _script() {
 	        ga.elitism = parseInt($('#elitism').val()) || false;
 	        ga.maxGenerations = parseInt($('#maxGenerations').val()) || 50;
 	    },
-	    
+
 	    // Evolves given population
-	    "evolvePopulation": function(population, generationCallBack, completeCallBack) {        
+	    "evolvePopulation": function(population, generationCallBack, completeCallBack) {
 	        // Start evolution
 	        var generation = 1;
 	        var evolveInterval = setInterval(function() {
@@ -433,17 +433,17 @@ function _script() {
 	                    generation: generation,
 	                });
 	            }
-	
+
 	            // Evolve population
 	            population = population.crossover();
 	            population.mutate();
 	            generation++;
-	            
+
 	            // If max generations passed
 	            if (generation > ga.maxGenerations) {
 	                // Stop looping
 	                clearInterval(evolveInterval);
-	                
+
 	                if (completeCallBack != undefined) {
 	                    completeCallBack({
 	                        population: population,
@@ -453,16 +453,16 @@ function _script() {
 	            }
 	        }, ga.tickerSpeed);
 	    },
-	
+
 	    // Population class
 	    "population": function() {
 	        // Holds individuals of population
 	        this.individuals = [];
-	    
+
 	        // Initial population of random individuals with given chromosome length
 	        this.initialize = function(chromosomeLength) {
 	            this.individuals = [];
-	    
+
 	            for (var i = 0; i < ga.populationSize; i++) {
 	                var newIndividual = new ga.individual(chromosomeLength);
 	                newIndividual.initialize();
@@ -470,29 +470,29 @@ function _script() {
 	                this.individuals.push(newIndividual);
 	            }
 	        };
-	        
+
 	        // Mutates current population
 	        this.mutate = function() {
 	            var fittestIndex = this.getFittestIndex();
-	
+
 	            for (index in this.individuals) {
-	                // Don't mutate if this is the elite individual and elitism is enabled 
+	                // Don't mutate if this is the elite individual and elitism is enabled
 	                if (ga.elitism != true || index != fittestIndex) {
 	                    this.individuals[index].mutate();
 	                }
 	            }
 	        };
-	
+
 	        // Applies crossover to current population and returns population of offspring
 	        this.crossover = function() {
 	            // Create offspring population
 	            var newPopulation = new ga.population();
-	            
+
 	            // Find fittest individual
 	            var fittestIndex = this.getFittestIndex();
 	            for (index in this.individuals) {
 	                // Add unchanged into next generation if this is the elite individual and elitism is enabled
-	                
+
 	                if (ga.elitism == true && index == fittestIndex) {
 	                    // Replicate individual
 	                    var eliteIndividual = new ga.individual(this.individuals[index].chromosomeLength);
@@ -508,15 +508,15 @@ function _script() {
 	                  //  console.log('nofitest after', this.individuals[index].chromosome.slice());
 	                }
 	            }
-	            
+
 	            return newPopulation;
 	        };
-	
+
 	        // Adds an individual to current population
 	        this.addIndividual = function(individual) {
 	            this.individuals.push(individual);
 	        };
-	
+
 	        // Selects an individual with tournament selection
 	        this.tournamentSelection = function() {
 	            // Randomly order population
@@ -526,46 +526,46 @@ function _script() {
 	                this.individuals[randomIndex] = this.individuals[i];
 	                this.individuals[i] = tempIndividual;
 	            }
-	
+
 	            // Create tournament population and add individuals
 	            var tournamentPopulation = new ga.population();
 	            for (var i = 0; i < ga.tournamentSize; i++) {
 	                tournamentPopulation.addIndividual(this.individuals[i]);
 	            }
-	
+
 	            return tournamentPopulation.getFittest();
 	        };
-	        
+
 	        // Return the fittest individual's population index
 	        this.getFittestIndex = function() {
 	            var fittestIndex = 0;
-	
+
 	            // Loop over population looking for fittest
 	            for (var i = 1; i < this.individuals.length; i++) {
 	                if (this.individuals[i].calcFitness() > this.individuals[fittestIndex].calcFitness()) {
 	                    fittestIndex = i;
 	                }
 	            }
-	
+
 	            return fittestIndex;
 	        };
-	
+
 	        // Return fittest individual
 	        this.getFittest = function() {
 	            return this.individuals[this.getFittestIndex()];
 	        };
 	    },
-	
+
 	    // Individual class
 	    "individual": function(chromosomeLength) {
 	        this.chromosomeLength = chromosomeLength;
 	        this.fitness = null;
 	        this.chromosome = [];
-	
+
 	        // Initialize random individual
 	        this.initialize = function() {
 	            this.chromosome = [];
-	
+
 	            // Generate random chromosome
 	            for (var i = 0; i < this.chromosomeLength; i++) {
 	                this.chromosome.push(i);
@@ -579,16 +579,16 @@ function _script() {
 	                }
 	            }
 	        };
-	        
+
 	        // Set individual's chromosome
 	        this.setChromosome = function(chromosome) {
 	            this.chromosome = chromosome;
 	        };
-	        
+
 	        // Mutate individual
 	        this.mutate = function() {
 	            this.fitness = null;
-	            
+
 	            // Loop over chromosome making random changes
 	            for (index in this.chromosome) {
 	                if (ga.mutationRate > Math.random() && index>0) {
@@ -597,80 +597,80 @@ function _script() {
 		                    var tempNode = this.chromosome[randomIndex];
 		                    this.chromosome[randomIndex] = this.chromosome[index];
 		                    this.chromosome[index] = tempNode;
-	                    	
+
 	                    }
 	                }
 	            }
 	        };
-	        
+
 	        // Returns individuals route distance
 	        this.getDistance = function() {
 	            var totalDistance = 0;
-	
+
 	            for (index in this.chromosome) {
 	                var startNode = this.chromosome[index];
 	                var endNode = this.chromosome[0];
 	                if ((parseInt(index) + 1) < this.chromosome.length) {
 	                    endNode = this.chromosome[(parseInt(index) + 1)];
 	                }
-	
+
 	                totalDistance += durations[startNode][endNode];
 	            }
-	            
+
 	            totalDistance += durations[startNode][endNode];
-	            
+
 	            return totalDistance;
 	        };
-	
+
 	        // Calculates individuals fitness value
-	        this.calcFitness = function() { 
+	        this.calcFitness = function() {
 	            if (this.fitness != null) {
 	                return this.fitness;
 	            }
-	        
+
 	            var totalDistance = this.getDistance();
-	
+
 	            this.fitness = 1 / totalDistance;
 	            return this.fitness;
 	        };
-	
+
 	        // Applies crossover to current individual and mate, then adds it's offspring to given population
 	        this.crossover = function(individual, offspringPopulation) {
 	            var offspringChromosome = [];
-	
+
 	            // Add a random amount of this individual's genetic information to offspring
 	            var startPos = Math.floor(this.chromosome.length * Math.random() );
 	            var endPos = Math.floor(this.chromosome.length * Math.random());
-	
+
 				var i = startPos;
 	            while (i != endPos) {
-	                
+
 	               if(i!=0) {
 		                offspringChromosome[i] = individual.chromosome[i];
 	               }
-	                
+
 	                i++
-	
+
 	                if (i >= this.chromosome.length) {
 	                    i = 0;
 	                }
 	            }
-	
+
 	            // Add any remaining genetic information from individual's mate
 	            //console.log('indi', individual.chromosome);
 	            for (parentIndex in individual.chromosome) {
-	            	
+
 	                var node = individual.chromosome[parentIndex];
-	
+
 	                var nodeFound = false;
 	                for (offspringIndex in offspringChromosome) {
-	                	
+
 	   	            		if (offspringChromosome[offspringIndex] == node) {
 		                        nodeFound = true;
 		                        break;
 		                    }
 	                }
-	
+
 	                if (nodeFound == false) {
 	                    for (var offspringIndex = 0; offspringIndex < individual.chromosome.length; offspringIndex++) {
 	                        if (offspringChromosome[offspringIndex] == undefined) {
@@ -680,7 +680,7 @@ function _script() {
 	                    }
 	                }
 	            }
-	
+
 	            // Add chromosome to offspring and add offspring to population
 	            var offspring = new ga.individual(this.chromosomeLength);
 	            //console.log('offA',offspring.chromosome);
@@ -690,8 +690,8 @@ function _script() {
 	        };
 	    },
 	};
-	
-	
+
+
 	</script><?php
 
 
@@ -699,13 +699,13 @@ function _script() {
 
 function _card() {
 	global $conf,$user,$langs, $form, $db, $mysoc;
-	
+
 	$address = $mysoc->address.', '.$mysoc->zip.' '.$mysoc->town.', '.$mysoc->country;
-	
+
   	?>
   	<style type="text/css">
   		@media print
-		{    
+		{
 		    .no-print, .no-print *, #id-top, #id-left, .side-nav
 		    {
 		        display: none !important;
@@ -713,13 +713,13 @@ function _card() {
 		}
   	</style>
   	<div id="point-depart" class="no-print">
-  		<?php echo $langs->trans('StartingPoint') ?> 
+  		<?php echo $langs->trans('StartingPoint') ?>
   		<input type="text" value="<?php echo $address; ?>" name="starting-point" id="starting-point" size="80" />
-  		<button id="start-from_this-point" class="butAction"><?php echo $langs->trans('StartFromThisAddress') ?></button>  
+  		<button id="start-from_this-point" class="butAction"><?php echo $langs->trans('StartFromThisAddress') ?></button>
   	</div>
-  	
+
   	<div id="map-canvas" style="width:100%; height:500px;"></div>
-	
+
 	  <div class="tabsAction no-print" id="ga-buttons">
 	  	<?php
 			$form=new Form($db);
@@ -727,13 +727,13 @@ function _card() {
 	  	?>
 	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompanyOnMap') ?></button>
 	  	&nbsp;
-	  	<button id="find-route" class="butAction"><?php echo $langs->trans('FindRoute') ?></button> 
-	  	<!-- <a id="download-map" class="butAction" onclick="downloadCanvas(this);"><?php echo $langs->trans('Download') ?></a> --> 
+	  	<button id="find-route" class="butAction"><?php echo $langs->trans('FindRoute') ?></button>
+	  	<!-- <a id="download-map" class="butAction" onclick="downloadCanvas(this);"><?php echo $langs->trans('Download') ?></a> -->
 	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
 	  </div>
-	  
+
 	  <div id="itineraire"></div>
-	  
+
 	   <div style="display:none;" class="no-print">
 	    <table>
 	        <tr>
@@ -836,14 +836,21 @@ function _card() {
 	        <tr class="ga-info" style="display:none;">
 	            <td>Best Time: </td><td id="best-time">?</td>
 	        </tr>
-	       
+
 	    </table>
 	  </div>
-	 
+
 	  <?php
-	  
-	  
-	  
-  
+
+	  $sql = "SELECT ac.id, ac.label, ac.datep, s.nom as socname, s.rowid as socid FROM ".MAIN_DB_PREFIX."actioncomm as ac";
+	  $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = ac.fk_soc";
+	  $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON u.rowid = ac.fk_user_author";
+	  $sql.= " WHERE ac.fk_soc IS NOT NULL";
+	  $sql.= " AND ac.percent = 0";
+	  $sql.= " AND ac.datep >= '".date('Y-m-d 00:00:00', strtotime('-2 weeks'))."'";
+	  $sql.= " AND ac.datep < '".date('Y-m-d 00:00:00', strtotime('+2 weeks'))."'";
+
+var_dump($sql);
+
  }
 
