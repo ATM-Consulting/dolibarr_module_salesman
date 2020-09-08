@@ -13,7 +13,7 @@
 	else {
 
 
-		_script();
+		//_script();
 		_card();
 
 	}
@@ -723,7 +723,7 @@ function _card() {
 	  <div class="tabsAction no-print" id="ga-buttons">
 	  	<?php
 			$form=new Form($db);
-	  		echo $form->select_thirdparty_list(-1,'fk_soc');
+	  		echo $form->select_company(-1,'fk_soc', "", 1);
 	  	?>
 	  	<button id="add-company" class="butAction"><?php echo $langs->trans('AddCompanyOnMap') ?></button>
 	  	&nbsp;
@@ -840,17 +840,110 @@ function _card() {
 	    </table>
 	  </div>
 
-	  <?php
+		<?php
+		$fk_user = GETPOST('fk_user', 'int');
+		if (empty($fk_user)) $fk_user = $user->id;
+		$socid = GETPOST('socid', 'int');
+		if ($socid < 0) $socid = 0;
 
-	  $sql = "SELECT ac.id, ac.label, ac.datep, s.nom as socname, s.rowid as socid FROM ".MAIN_DB_PREFIX."actioncomm as ac";
-	  $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = ac.fk_soc";
-	  $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON u.rowid = ac.fk_user_author";
-	  $sql.= " WHERE ac.fk_soc IS NOT NULL";
-	  $sql.= " AND ac.percent = 0";
-	  $sql.= " AND ac.datep >= '".date('Y-m-d 00:00:00', strtotime('-2 weeks'))."'";
-	  $sql.= " AND ac.datep < '".date('Y-m-d 00:00:00', strtotime('+2 weeks'))."'";
+		$sql = "SELECT ac.id, ac.code, ac.label, ac.datep as dp, ac.datep2 as dp2, ac.code, ac.location, c.code as type_code, c.libelle as type_label, GROUP_CONCAT(ua.rowid) as user_assigned";
+		$sql.= " ,s.nom as societe, s.rowid as socid, s.client, s.email as socemail";
+		$sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as ac";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_actioncomm as c ON ac.fk_action = c.id";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = ac.fk_soc";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON u.rowid = ac.fk_user_author";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."actioncomm_resources as ar ON ar.fk_actioncomm = ac.id AND ar.element_type = 'user'";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as ua ON ua.rowid = ar.fk_element";
+		$sql.= " WHERE ac.fk_soc IS NOT NULL";
+		$sql.= " AND ac.percent = 0";
+		$sql.= " AND ac.datep >= '".date('Y-m-d 00:00:00', strtotime('-2 weeks'))."'";
+		$sql.= " AND ac.datep < '".date('Y-m-d 00:00:00', strtotime('+2 weeks'))."'";
+		$sql.= " AND ar.fk_element = ".$fk_user;
+		if (!empty($socid)) $sql.= " AND ac.fk_soc = ".$socid;
+		$sql.= " GROUP BY ac.id";
+		$resql = $db->query($sql);
+		if ($resql)
+		{
 
-var_dump($sql);
+		?>
+			<form method="POST" id="searchFormList" class="listactionsfilter" action="<?php $_SERVER['PHP_SELF']; ?>">
 
+			<div class="div-table-responsive">
+				<table class="tagtable liste">
+					<tr class="liste_titre_filter">
+						<td class="liste_titre"></td>
+						<td class="liste_titre"></td>
+						<td class="liste_titre"></td>
+						<td class="liste_titre"></td>
+						<td class="liste_titre"></td>
+						<td class="liste_titre"><?php echo $form->select_company("", "socid", "", 1); ?></td>
+						<td class="liste_titre"><?php echo $form->select_dolusers($fk_user, 'fk_user', 1); ?></td>
+						<td class="liste_titre"></td>
+					</tr>
+					<tr class="">
+						<td class=""><?php echo $langs->trans('Ref'); ?></td>
+						<td class=""><?php echo $langs->trans('Type'); ?></td>
+						<td class=""><?php echo $langs->trans('Label'); ?></td>
+						<td class=""><?php echo $langs->trans('DateStart'); ?></td>
+						<td class=""><?php echo $langs->trans('DateEnd'); ?></td>
+						<td class=""><?php echo $langs->trans('ThirdParty'); ?></td>
+						<td class=""><?php echo $langs->trans('ActionAssignedTo'); ?></td>
+						<td class="liste_titre"></td>
+					</tr>
+<?php
+
+			if ($db->num_rows($resql))
+			{
+				require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+				$actionstatic = new ActionComm($db);
+				$societestatic = new Societe($db);
+				$u = new User($db);
+
+				while ($obj = $db->fetch_object($resql))
+				{
+					$actionstatic->id = $obj->id;
+					$actionstatic->ref = $obj->id;
+					$actionstatic->code = $obj->code;
+					$actionstatic->type_code = $obj->type_code;
+					$actionstatic->type_label = $obj->type_label;
+					$actionstatic->label = $obj->label;
+					$actionstatic->location = $obj->location;
+
+					$actionstatic->fetchResources();
+					$assigned = "";
+					if (!empty ($actionstatic->userassigned))
+					{
+						foreach ($actionstatic->userassigned as $userInfos)
+						{
+							$res = $u->fetch($userInfos['id']);
+							if ($res) $assigned.=$u->getNomUrl(1)."<br>";
+						}
+					}
+
+					print "<tr>";
+					print "<td>".$actionstatic->getNomUrl(1, -1)."</td>";
+					print "<td></td>";
+					print "<td>".$actionstatic->label."</td>";
+					print "<td>".dol_print_date($db->jdate($obj->dp), 'dayhour')."</td>";
+					print "<td>".dol_print_date($db->jdate($obj->dp2), 'dayhour')."</td>";
+
+					$societestatic->id = $obj->socid;
+					$societestatic->client = $obj->client;
+					$societestatic->name = $obj->societe;
+					$societestatic->email = $obj->socemail;
+
+					print "<td>".$societestatic->getNomUrl(1, '', 28)."</td>";
+					print "<td>".$assigned."</td>";
+					print "<td></td>";
+					print "</tr>";
+				}
+			}
+			else
+			{
+				print "<tr><td colspan='8' align='center'>".$langs->trans('Empty')."</td></tr>";
+			}
+
+			print "</table></form></div>";
+		}
  }
 
