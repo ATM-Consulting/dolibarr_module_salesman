@@ -3,7 +3,7 @@
 	require 'config.php';
 
 	llxHeader();
-	dol_fiche_head();
+//	dol_fiche_head();
 
 	if(empty($conf->global->SALESMAN_GOOGLE_API_KEY)) {
 
@@ -13,12 +13,12 @@
 	else {
 
 
-		//_script();
+		_script();
 		_card();
 
 	}
 
-	dol_fiche_end();
+//	dol_fiche_end();
 
 	llxFooter();
 
@@ -28,7 +28,7 @@ function _script() {
 	global $conf,$user,$langs;
 
 	?><script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?php echo $conf->global->SALESMAN_GOOGLE_API_KEY ?>"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
+<!--	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>-->
 	<script type="text/javascript">
 	var map;
 	var directionsDisplay = null;
@@ -112,6 +112,7 @@ function _script() {
 	            });
 	        });
 	    }
+
 	}
 
 	// Get all durations depending on travel type
@@ -193,6 +194,11 @@ function _script() {
 
 	    $('#ga-buttons').show();
 	}
+
+	function getMarkers()
+	{
+		return markers;
+	}
 	// Removes map directions
 	function clearDirections() {
 	    // If there are directions being shown, clear them
@@ -207,6 +213,7 @@ function _script() {
 	    clearDirections();
 
 	    $('#destinations-count').html('0');
+		$('.selectSociete').prop('checked', false).attr('disabled', false);
 	}
 
 	// Initial Google Maps
@@ -250,6 +257,91 @@ function _script() {
 	$(document).ready(function() {
 	    $('#clear-map').click(clearMap);
 
+		var table = $("#listevent").DataTable({
+			"order": [[ 3, "asc" ]]
+			,initComplete: function () {
+				this.api().columns().every( function () {
+					var column = this;
+					var rejectedCols = [0,2,3,4,7];
+					var options = [];
+					if (! rejectedCols.includes(column.index()))
+					{
+						// console.log($(column.header()).parent().prev().find('th'))
+						var select = $('<select id="select'+column.index()+'"><option></option></select>')
+							.appendTo( $(column.header()).parent().prev().find('th')[column.index()] )
+							.on( 'change', function () {
+								var val = $(this).val();
+
+								column
+									.search( val ? val : '', true, false )
+									.draw();
+							} );
+
+						column.data().unique().sort().each( function ( d, j ) {
+							$element = $('<p>'+d+'</p>');
+
+							if ($element.find('a').length > 0)
+							{
+								$element.find('a').each(function(){
+
+									if (! options.includes($(this).text()))
+									{
+										var text = $(this).text();
+
+										options.push(text);
+										select.append( '<option value="'+text+'">'+text+'</option>' )
+									}
+								})
+							}
+							else select.append( '<option value="'+d+'">'+d+'</option>' )
+						} );
+					}
+
+				} );
+
+			}
+		});
+
+		// les select sont des select2
+		$('#listevent').find('tr:first-child').find('select').each(function() {
+			$(this).select2();
+		})
+
+		// on prefiltre par le user courant
+		$('#select6').val('<?php echo $user->getFullName($langs); ?>');
+		$('#select6').change();
+
+		// on vire la recherche générale
+		$('#listevent_filter').hide();
+
+		// multiselect de type d'événement
+		$('#select1').attr('multiple', true);
+		$('#select1').attr('name', 'select1[]');
+		$('#select1').select2({multiple:true});
+
+		// déselection de l'optionvide
+		$('#select1').find('option:selected').each(function(){
+			$(this).prop("selected", false);
+		})
+		$('#select1').change();
+
+		$('#select1').on('change', function(){
+			var search = [];
+
+			var regEx = $(this).find(':selected').map(function() {
+				return $( this ).text();
+			})
+				.get()
+				.join( "|" );
+			console.log(search)
+			table.column(1).search(regEx, true, false).draw();
+		});
+
+		$(".selectSociete").click(function (){
+			var fk_soc = $(this).data("socid");
+			addCompany(fk_soc);
+		});
+
 		setStartingPoint();
 		$("#start-from_this-point").click(function() {
 
@@ -257,13 +349,11 @@ function _script() {
 
 		});
 
+		function addCompany(fk_soc) {
 
-		$("#add-company").click(function() {
-
-			var fk_soc = $('#fk_soc').val();
 			clearDirections();
 
-	       $.ajax({
+			$.ajax({
 				url:"script/interface.php"
 				,data:{
 					"get":"company-address"
@@ -271,27 +361,34 @@ function _script() {
 				}
 				,dataType:"json"
 			}).done(function(data) {
-					console.log(data);
-				  myPosition = data.results[0].geometry.location;
+				console.log(data);
+				myPosition = data.results[0].geometry.location;
 
-				  if(myPosition) {
-					  marker = new google.maps.Marker({position: myPosition, map: map});
-		       		  markers.push(marker);
-					  nodes.push(myPosition);
+				if(myPosition) {
+					marker = new google.maps.Marker({position: myPosition, map: map, socid: data.socid});
+					markers.push(marker);
 
-		        	  map.setCenter(myPosition);
+					nodes.push(myPosition);
 
-		        	  $('#destinations-count').html(nodes.length);
+					map.setCenter(myPosition);
 
-				  }
-				  else{
-				  	alert('Erreur');
+					$('#destinations-count').html(nodes.length);
+					$('input[data-socid="'+data.socid+'"]').attr('disabled', true).prop('checked', true);
 
-				  }
+				}
+				else{
+					alert('Erreur');
+
+				}
 
 
 			});
 
+		}
+
+		$("#add-company").click(function() {
+			var fk_soc = $('#fk_soc').val();
+			addCompany(fk_soc);
 		});
 
 	    // Start GA
@@ -732,8 +829,6 @@ function _card() {
 	  	<button id="clear-map" class="butAction"><?php echo $langs->trans('ClearDestination') ?></button>
 	  </div>
 
-	  <div id="itineraire"></div>
-
 	   <div style="display:none;" class="no-print">
 	    <table>
 	        <tr>
@@ -846,6 +941,8 @@ function _card() {
 		$socid = GETPOST('socid', 'int');
 		if ($socid < 0) $socid = 0;
 
+		$toselect = GETPOST('toselect', 'array');
+
 		$sql = "SELECT ac.id, ac.code, ac.label, ac.datep as dp, ac.datep2 as dp2, ac.code, ac.location, c.code as type_code, c.libelle as type_label, GROUP_CONCAT(ua.rowid) as user_assigned";
 		$sql.= " ,s.nom as societe, s.rowid as socid, s.client, s.email as socemail";
 		$sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as ac";
@@ -858,9 +955,12 @@ function _card() {
 		$sql.= " AND ac.percent = 0";
 		$sql.= " AND ac.datep >= '".date('Y-m-d 00:00:00', strtotime('-2 weeks'))."'";
 		$sql.= " AND ac.datep < '".date('Y-m-d 00:00:00', strtotime('+2 weeks'))."'";
-		$sql.= " AND ar.fk_element = ".$fk_user;
+//		$sql.= " AND ar.fk_element = ".$fk_user;
 		if (!empty($socid)) $sql.= " AND ac.fk_soc = ".$socid;
 		$sql.= " GROUP BY ac.id";
+
+//		print $sql;
+
 		$resql = $db->query($sql);
 		if ($resql)
 		{
@@ -869,38 +969,46 @@ function _card() {
 			<form method="POST" id="searchFormList" class="listactionsfilter" action="<?php $_SERVER['PHP_SELF']; ?>">
 
 			<div class="div-table-responsive">
-				<table class="tagtable liste">
+				<table id="listevent" class="tagtable liste">
+			<thead>
 					<tr class="liste_titre_filter">
-						<td class="liste_titre"></td>
-						<td class="liste_titre"></td>
-						<td class="liste_titre"></td>
-						<td class="liste_titre"></td>
-						<td class="liste_titre"></td>
-						<td class="liste_titre"><?php echo $form->select_company("", "socid", "", 1); ?></td>
-						<td class="liste_titre"><?php echo $form->select_dolusers($fk_user, 'fk_user', 1); ?></td>
-						<td class="liste_titre"></td>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
 					</tr>
-					<tr class="">
-						<td class=""><?php echo $langs->trans('Ref'); ?></td>
-						<td class=""><?php echo $langs->trans('Type'); ?></td>
-						<td class=""><?php echo $langs->trans('Label'); ?></td>
-						<td class=""><?php echo $langs->trans('DateStart'); ?></td>
-						<td class=""><?php echo $langs->trans('DateEnd'); ?></td>
-						<td class=""><?php echo $langs->trans('ThirdParty'); ?></td>
-						<td class=""><?php echo $langs->trans('ActionAssignedTo'); ?></td>
-						<td class="liste_titre"></td>
+					<tr class="liste_titre">
+						<th class="liste_titre"><?php echo $langs->trans('Ref'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('Type'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('Label'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('DateStart'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('DateEnd'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('ThirdParty'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('ActionAssignedTo'); ?></th>
+						<th class="liste_titre"></th>
 					</tr>
+			</thead>
+			<tbody>
 <?php
 
 			if ($db->num_rows($resql))
 			{
 				require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+				require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+				$caction = new CActionComm($db);
+				$arraylist = $caction->liste_array(1, 'code', '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : 0), '', 1);
+
 				$actionstatic = new ActionComm($db);
 				$societestatic = new Societe($db);
 				$u = new User($db);
 
 				while ($obj = $db->fetch_object($resql))
 				{
+					$actionstatic = new ActionComm($db);
 					$actionstatic->id = $obj->id;
 					$actionstatic->ref = $obj->id;
 					$actionstatic->code = $obj->code;
@@ -920,9 +1028,25 @@ function _card() {
 						}
 					}
 
+					$imgpicto = '';
+					if ($actionstatic->type_code == 'AC_RDV')         $imgpicto = img_picto('', 'object_group', '', false, 0, 0, '', 'paddingright').' ';
+					elseif ($actionstatic->type_code == 'AC_TEL')     $imgpicto = img_picto('', 'object_phoning', '', false, 0, 0, '', 'paddingright').' ';
+					elseif ($actionstatic->type_code == 'AC_FAX')     $imgpicto = img_picto('', 'object_phoning_fax', '', false, 0, 0, '', 'paddingright').' ';
+					elseif ($actionstatic->type_code == 'AC_EMAIL')   $imgpicto = img_picto('', 'object_email', '', false, 0, 0, '', 'paddingright').' ';
+					elseif ($actionstatic->type_code == 'AC_INT')     $imgpicto = img_picto('', 'object_intervention', '', false, 0, 0, '', 'paddingright').' ';
+					elseif ($actionstatic->type_code == 'AC_OTH' && $actionstatic->code == 'TICKET_MSG') $imgpicto = img_picto('', 'object_conversation', '', false, 0, 0, '', 'paddingright').' ';
+					elseif (!preg_match('/_AUTO/', $actionstatic->type_code)) $imgpicto = img_picto('', 'object_other', '', false, 0, 0, '', 'paddingright').' ';
+
+					$labeltype = $obj->type_code;
+					if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($arraylist[$labeltype])) $labeltype = 'AC_OTH';
+					if ($actionstatic->type_code == 'AC_OTH' && $actionstatic->code == 'TICKET_MSG') {
+						$labeltype = $langs->trans("Message");
+					} elseif (!empty($arraylist[$labeltype])) $labeltype = $arraylist[$labeltype];
+
+
 					print "<tr>";
 					print "<td>".$actionstatic->getNomUrl(1, -1)."</td>";
-					print "<td></td>";
+					print "<td>"./*$imgpicto.*/dol_trunc($labeltype, 28)."</td>";
 					print "<td>".$actionstatic->label."</td>";
 					print "<td>".dol_print_date($db->jdate($obj->dp), 'dayhour')."</td>";
 					print "<td>".dol_print_date($db->jdate($obj->dp2), 'dayhour')."</td>";
@@ -934,7 +1058,7 @@ function _card() {
 
 					print "<td>".$societestatic->getNomUrl(1, '', 28)."</td>";
 					print "<td>".$assigned."</td>";
-					print "<td></td>";
+					print '<td><input class="selectSociete" type="checkbox" value="'.$actionstatic->id.'" data-socid="'.$societestatic->id.'"></td>';
 					print "</tr>";
 				}
 			}
@@ -942,8 +1066,16 @@ function _card() {
 			{
 				print "<tr><td colspan='8' align='center'>".$langs->trans('Empty')."</td></tr>";
 			}
+			print "</tbody>";
 
 			print "</table></form></div>";
+
+			print '<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">';
+			print '<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>';
+
 		}
+
+		print '<div id="itineraire"></div>';
+
  }
 
