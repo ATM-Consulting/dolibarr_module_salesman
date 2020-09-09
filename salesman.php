@@ -957,6 +957,7 @@ function _card() {
 		$sql.= " AND ac.datep < '".date('Y-m-d 00:00:00', strtotime('+2 weeks'))."'";
 //		$sql.= " AND ar.fk_element = ".$fk_user;
 		if (!empty($socid)) $sql.= " AND ac.fk_soc = ".$socid;
+		if (!empty($conf->global->SALESMAN_EVENTTYPE_TO_FILTER_LIST)) $sql.= " AND ac.code IN ('".implode("','",json_decode($conf->global->SALESMAN_EVENTTYPE_TO_FILTER_LIST, true))."')";
 		$sql.= " GROUP BY ac.id";
 
 //		print $sql;
