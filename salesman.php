@@ -262,7 +262,7 @@ function _script() {
 			,initComplete: function () {
 				this.api().columns().every( function () {
 					var column = this;
-					var rejectedCols = [0,2,3,4,7];
+					var rejectedCols = [0,2,3,4,9];
 					var options = [];
 					if (! rejectedCols.includes(column.index()))
 					{
@@ -308,22 +308,24 @@ function _script() {
 		})
 
 		// on prefiltre par le user courant
-		$('#select6').val('<?php echo $user->getFullName($langs); ?>');
-		$('#select6').change();
+		$('#select8').val('<?php echo $user->getFullName($langs); ?>');
+		$('#select8').change();
 
 		// on vire la recherche générale
 		$('#listevent_filter').hide();
 
 		// multiselect de type d'événement
-		$('#select1').attr('multiple', true);
+		$('#select1, #select6, #select7').attr('multiple', true);
 		$('#select1').attr('name', 'select1[]');
-		$('#select1').select2({multiple:true});
+		$('#select6').attr('name', 'select6[]');
+		$('#select7').attr('name', 'select7[]');
+		$('#select1, #select6, #select7').select2({multiple:true});
 
 		// déselection de l'optionvide
-		$('#select1').find('option:selected').each(function(){
+		$('#select1, #select6, #select7').find('option:selected').each(function(){
 			$(this).prop("selected", false);
 		})
-		$('#select1').change();
+		$('#select1, #select6, #select7').change();
 
 		$('#select1').on('change', function(){
 			var search = [];
@@ -335,6 +337,28 @@ function _script() {
 				.join( "|" );
 			console.log(search)
 			table.column(1).search(regEx, true, false).draw();
+		});
+		$('#select6').on('change', function(){
+			var search = [];
+
+			var regEx = $(this).find(':selected').map(function() {
+				return $( this ).text();
+			})
+				.get()
+				.join( "|" );
+			console.log(search)
+			table.column(6).search(regEx, true, false).draw();
+		});
+		$('#select7').on('change', function(){
+			var search = [];
+
+			var regEx = $(this).find(':selected').map(function() {
+				return $( this ).text();
+			})
+				.get()
+				.join( "|" );
+			console.log(search)
+			table.column(7).search(regEx, true, false).draw();
 		});
 
 		$(".selectSociete").click(function (){
@@ -944,7 +968,7 @@ function _card() {
 		$toselect = GETPOST('toselect', 'array');
 
 		$sql = "SELECT ac.id, ac.code, ac.label, ac.datep as dp, ac.datep2 as dp2, ac.code, ac.location, c.code as type_code, c.libelle as type_label, GROUP_CONCAT(ua.rowid) as user_assigned";
-		$sql.= " ,s.nom as societe, s.rowid as socid, s.client, s.email as socemail";
+		$sql.= " ,s.nom as societe, s.rowid as socid, s.address, s.town, s.client, s.email as socemail";
 		$sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as ac";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_actioncomm as c ON ac.fk_action = c.id";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = ac.fk_soc";
@@ -981,6 +1005,8 @@ function _card() {
 						<th class="liste_titre"></th>
 						<th class="liste_titre"></th>
 						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
+						<th class="liste_titre"></th>
 					</tr>
 					<tr class="liste_titre">
 						<th class="liste_titre"><?php echo $langs->trans('Ref'); ?></th>
@@ -989,6 +1015,8 @@ function _card() {
 						<th class="liste_titre"><?php echo $langs->trans('DateStart'); ?></th>
 						<th class="liste_titre"><?php echo $langs->trans('DateEnd'); ?></th>
 						<th class="liste_titre"><?php echo $langs->trans('ThirdParty'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('Address'); ?></th>
+						<th class="liste_titre"><?php echo $langs->trans('Town'); ?></th>
 						<th class="liste_titre"><?php echo $langs->trans('ActionAssignedTo'); ?></th>
 						<th class="liste_titre"></th>
 					</tr>
@@ -1056,8 +1084,12 @@ function _card() {
 					$societestatic->client = $obj->client;
 					$societestatic->name = $obj->societe;
 					$societestatic->email = $obj->socemail;
+					$societestatic->address = $obj->address;
+					$societestatic->town = $obj->town;
 
 					print "<td>".$societestatic->getNomUrl(1, '', 28)."</td>";
+					print "<td>".$societestatic->address."</td>";
+					print "<td>".$societestatic->town."</td>";
 					print "<td>".$assigned."</td>";
 					print '<td><input class="selectSociete" type="checkbox" value="'.$actionstatic->id.'" data-socid="'.$societestatic->id.'"></td>';
 					print "</tr>";
