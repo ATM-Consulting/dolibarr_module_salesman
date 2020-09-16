@@ -259,6 +259,29 @@ function _script() {
 
 		var table = $("#listevent").DataTable({
 			"order": [[ 3, "asc" ]]
+			,"language": {
+				"sProcessing":     "Traitement en cours...",
+				"sSearch":         "Rechercher&nbsp;:",
+				"sLengthMenu":     "Afficher _MENU_ &eacute;l&eacute;ments",
+				"sInfo":           "Affichage de l'&eacute;l&eacute;ment _START_ &agrave; _END_ sur _TOTAL_ &eacute;l&eacute;ments",
+				"sInfoEmpty":      "Affichage de l'&eacute;l&eacute;ment 0 &agrave; 0 sur 0 &eacute;l&eacute;ment",
+				"sInfoFiltered":   "(filtr&eacute; de _MAX_ &eacute;l&eacute;ments au total)",
+				"sInfoPostFix":    "",
+				"sLoadingRecords": "Chargement en cours...",
+				"sZeroRecords":    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+				"sEmptyTable":     "Aucune donn&eacute;e disponible dans le tableau",
+				"oPaginate": {
+					"sFirst":      "Premier",
+					"sPrevious":   "Pr&eacute;c&eacute;dent",
+					"sNext":       "Suivant",
+					"sLast":       "Dernier"
+				},
+				"oAria": {
+					"sSortAscending":  ": activer pour trier la colonne par ordre croissant",
+					"sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+				}
+			}
+			,"paging": false
 			,initComplete: function () {
 				this.api().columns().every( function () {
 					var column = this;
@@ -1103,8 +1126,8 @@ function _card() {
 
 			print "</table></form></div>";
 
-			print '<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">';
-			print '<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>';
+			print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/custom/salesman/vendor/data-tables/datatables.min.css">';
+			print '<script type="text/javascript" charset="utf8" src="'.DOL_URL_ROOT.'/custom/salesman/vendor/data-tables/jquery.dataTables.min.js"></script>';
 
 		}
 
