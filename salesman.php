@@ -1076,15 +1076,6 @@ function _card() {
 						}
 					}
 
-					$imgpicto = '';
-					if ($actionstatic->type_code == 'AC_RDV')         $imgpicto = img_picto('', 'object_group', '', false, 0, 0, '', 'paddingright').' ';
-					elseif ($actionstatic->type_code == 'AC_TEL')     $imgpicto = img_picto('', 'object_phoning', '', false, 0, 0, '', 'paddingright').' ';
-					elseif ($actionstatic->type_code == 'AC_FAX')     $imgpicto = img_picto('', 'object_phoning_fax', '', false, 0, 0, '', 'paddingright').' ';
-					elseif ($actionstatic->type_code == 'AC_EMAIL')   $imgpicto = img_picto('', 'object_email', '', false, 0, 0, '', 'paddingright').' ';
-					elseif ($actionstatic->type_code == 'AC_INT')     $imgpicto = img_picto('', 'object_intervention', '', false, 0, 0, '', 'paddingright').' ';
-					elseif ($actionstatic->type_code == 'AC_OTH' && $actionstatic->code == 'TICKET_MSG') $imgpicto = img_picto('', 'object_conversation', '', false, 0, 0, '', 'paddingright').' ';
-					elseif (!preg_match('/_AUTO/', $actionstatic->type_code)) $imgpicto = img_picto('', 'object_other', '', false, 0, 0, '', 'paddingright').' ';
-
 					$labeltype = $obj->type_code;
 					if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($arraylist[$labeltype])) $labeltype = 'AC_OTH';
 					if ($actionstatic->type_code == 'AC_OTH' && $actionstatic->code == 'TICKET_MSG') {
@@ -1094,7 +1085,7 @@ function _card() {
 
 					print "<tr>";
 					print "<td>".$actionstatic->getNomUrl(1, -1)."</td>";
-					print "<td>"./*$imgpicto.*/dol_trunc($labeltype, 28)."</td>";
+					print "<td>".dol_trunc($labeltype, 28)."</td>";
 					print "<td>".$actionstatic->label."</td>";
 					print "<td>".dol_print_date($db->jdate($obj->dp), 'dayhour')."</td>";
 					print "<td>".dol_print_date($db->jdate($obj->dp2), 'dayhour')."</td>";
