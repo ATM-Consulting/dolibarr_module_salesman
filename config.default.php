@@ -1,5 +1,5 @@
 <?php
-	
+
 	if(is_file('../main.inc.php'))$dir = '../';
 	else  if(is_file('../../../main.inc.php'))$dir = '../../../';
 	else $dir = '../../';
@@ -22,10 +22,5 @@
 		define('DB_DRIVER',$dolibarr_main_db_type);
 	}
 
-	if(!dol_include_once('/abricot/inc.core.php')) {
-		print $langs->trans('AbricotNotFound'). ' : <a href="http://wiki.atm-consulting.fr/index.php/Accueil#Abricot" target="_blank">Abricot</a>';
-		exit;
-	}
 
-	
 

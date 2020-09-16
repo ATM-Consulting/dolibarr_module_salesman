@@ -195,10 +195,6 @@ function _script() {
 	    $('#ga-buttons').show();
 	}
 
-	function getMarkers()
-	{
-		return markers;
-	}
 	// Removes map directions
 	function clearDirections() {
 	    // If there are directions being shown, clear them
