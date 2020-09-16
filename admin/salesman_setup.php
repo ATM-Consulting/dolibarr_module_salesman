@@ -31,6 +31,7 @@ if (! $res) {
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/salesman.lib.php';
+require_once DOL_DOCUMENT_ROOT . "/core/class/html.formactions.class.php";
 
 // Translations
 $langs->load("salesman@salesman");
@@ -49,7 +50,21 @@ $action = GETPOST('action', 'alpha');
 if (preg_match('/set_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
-	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
+	if ($code == 'SALESMAN_EVENTTYPE_TO_FILTER_LIST')
+	{
+		$value = json_encode(GETPOST($code));
+		if (empty(GETPOST($code))) dolibarr_del_const($db, $code, 0);
+		else if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) > 0)
+		{
+			header("Location: ".$_SERVER["PHP_SELF"]);
+			exit;
+		}
+		else
+		{
+			dol_print_error($db);
+		}
+	}
+	else if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
 	{
 		header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
@@ -59,7 +74,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 		dol_print_error($db);
 	}
 }
-	
+
 if (preg_match('/del_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
@@ -83,7 +98,7 @@ llxHeader('', $langs->trans($page_name));
 // Subheader
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'
     . $langs->trans("BackToModuleList") . '</a>';
-print_fiche_titre($langs->trans($page_name), $linkback);
+print load_fiche_titre($langs->trans($page_name), $linkback);
 
 // Configuration header
 $head = salesmanAdminPrepareHead();
@@ -97,6 +112,7 @@ dol_fiche_head(
 
 // Setup page goes here
 $form=new Form($db);
+$formactions = new FormActions($db);
 $var=false;
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -115,6 +131,19 @@ print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_SALESMAN_GOOGLE_API_KEY">';
 print '<input type="text" size="60" name="SALESMAN_GOOGLE_API_KEY" value="'.$conf->global->SALESMAN_GOOGLE_API_KEY .'">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("SALESMAN_EVENTTYPE_TO_FILTER_LIST").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300" nowrap="nowrap">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_SALESMAN_EVENTTYPE_TO_FILTER_LIST">';
+print $formactions->select_type_actions(json_decode($conf->global->SALESMAN_EVENTTYPE_TO_FILTER_LIST, true), "SALESMAN_EVENTTYPE_TO_FILTER_LIST", '', -1, 0, 1, 0, 'maxwidth500');
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';

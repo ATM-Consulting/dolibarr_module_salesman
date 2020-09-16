@@ -20,3 +20,5 @@ MaxPath=Vous avez atteint la limite de recherche de destination
 
 SALESMAN_GOOGLE_API_KEY=Clé API de Google
 SALESMAN_GOOGLE_API_KEY_HELP=Via la console google, pensez à activer les services suivants dans la séction "API Google Maps"<br /><ul><li>Google Maps Distance Matrix API</li><li>Google Maps Directions API</li><li>Google Maps Geocoding API</li></ul>
+Empty=Vide
+SALESMAN_EVENTTYPE_TO_FILTER_LIST=Types d'événements autorisés dans la liste d'événements sur le générateur de tournées
