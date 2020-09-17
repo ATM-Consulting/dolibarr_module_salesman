@@ -278,7 +278,7 @@ function _script() {
 					"sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
 				}
 			}
-			,"paging": false
+			,"paging": true
 			,initComplete: function () {
 				this.api().columns().every( function () {
 					var column = this;
@@ -1025,7 +1025,7 @@ function _card() {
 		?>
 			<form method="POST" id="searchFormList" class="listactionsfilter" action="<?php $_SERVER['PHP_SELF']; ?>">
 
-			<div class="div-table-responsive">
+			<div class="div-table-responsive" style="overflow: visible;">
 				<table id="listevent" class="tagtable liste">
 			<thead>
 					<tr class="liste_titre_filter">
