@@ -43,6 +43,7 @@ function _script() {
 	var prevNodes = [];
 	var markers = [];
 	var durations = [];
+	var thirdparties = [];
 
 	// Initialize google maps
 	function initializeMap() {
@@ -380,7 +381,18 @@ function _script() {
 			table.column(7).search(regEx, true, false).draw();
 		});
 
-		$(".selectSociete").click(function (){
+		table.on('draw', function(){
+			$(".selectSociete").on('click', function (){
+				var fk_soc = $(this).data("socid");
+				addCompany(fk_soc);
+			});
+
+			thirdparties.map(function(socid){
+				$('input[data-socid="'+socid+'"]').attr('disabled', true).prop('checked', true);
+			});
+		});
+
+		$(".selectSociete").on('click', function (){
 			var fk_soc = $(this).data("socid");
 			addCompany(fk_soc);
 		});
@@ -410,6 +422,7 @@ function _script() {
 				if(myPosition) {
 					marker = new google.maps.Marker({position: myPosition, map: map, socid: data.socid});
 					markers.push(marker);
+					thirdparties.push(fk_soc);
 
 					nodes.push(myPosition);
 
