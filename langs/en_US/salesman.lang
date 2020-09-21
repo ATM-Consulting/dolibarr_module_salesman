@@ -5,3 +5,19 @@ ATMAbout = This module has been developed by <a href="http://www.atm-consulting.
 
 SalesmanSetup = Salesman module setup
 SalesmanAbout = About Salesman
+
+AddCompanyOnMap = add company on map
+FindRoute = find the road
+ClearDestination = reset
+MyLocation = Locate me if possible
+SalesmanRoadFinder = Tour Generator
+
+StartingPoint = My starting point
+StartFromThisAddress = Starting from there
+
+MaxPath = You have reached the destination search limit
+
+SALESMAN_GOOGLE_API_KEY = Google API Key
+SALESMAN_GOOGLE_API_KEY_HELP = Via the google console, remember to activate the following services in the section "API Google Maps"<br /><ul><li>Google Maps Distance Matrix API</li><li>Google Maps Directions API</li><li>Google Maps Geocoding API</li></ul>
+Empty = Empty
+SALESMAN_EVENTTYPE_TO_FILTER_LIST = Types of events allowed in the event list on the tour generator
