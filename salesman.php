@@ -1050,7 +1050,7 @@ function _card() {
 						<th class="liste_titre"><?php echo $langs->trans('Address'); ?></th>
 						<th class="liste_titre"><?php echo $langs->trans('Town'); ?></th>
 						<th class="liste_titre"><?php echo $langs->trans('ActionAssignedTo'); ?></th>
-						<th class="liste_titre"></th>
+						<th class="liste_titre">&nbsp;</th>
 					</tr>
 			</thead>
 			<tbody>
@@ -1120,7 +1120,7 @@ function _card() {
 			}
 			else
 			{
-				print "<tr><td colspan='8' align='center'>".$langs->trans('Empty')."</td></tr>";
+				print "<tr><td>".$langs->trans('Empty')."</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
 			}
 			print "</tbody>";
 
